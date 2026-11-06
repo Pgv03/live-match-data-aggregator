@@ -143,4 +143,23 @@ public class MatchStore {
 
     private static Timestamp tsOf(Instant i) { return i == null ? null : Timestamp.from(i); }
 
+    /** Maps a provider's own match id to our client-facing match id. */
+    public Optional<String> findMatchId(String provider, String providerMatchId) {
+        return jdbc.query(
+                "SELECT match_id FROM provider_match_map WHERE provider=? AND provider_match_id=?",
+                (rs, i) -> rs.getString("match_id"),
+                provider, providerMatchId).stream().findFirst();
+    }
+
+    /** Push idempotency. Returns false if (provider, deliveryId) was already recorded. */
+    public boolean recordDelivery(String provider, String deliveryId) {
+        try {
+            jdbc.update("INSERT INTO delivery_log (provider, delivery_id) VALUES (?, ?)",
+                    provider, deliveryId);
+            return true;
+        } catch (DuplicateKeyException e) {
+            return false;
+        }
+    }
+
 }
