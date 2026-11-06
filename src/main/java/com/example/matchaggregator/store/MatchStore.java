@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.example.matchaggregator.model.Match;
+
 import java.sql.Timestamp;
 import java.util.Optional;
 
@@ -160,6 +162,26 @@ public class MatchStore {
         } catch (DuplicateKeyException e) {
             return false;
         }
+    }
+
+    public Optional<Match> findMatch(String id) {
+        return jdbc.query("SELECT id, title, primary_provider FROM matches WHERE id=?",
+                (rs, i) -> new Match(rs.getString("id"), rs.getString("title"),
+                        rs.getString("primary_provider")),
+                id).stream().findFirst();
+    }
+
+    public List<Match> listMatches() {
+        return jdbc.query("SELECT id, title, primary_provider FROM matches ORDER BY id",
+                (rs, i) -> new Match(rs.getString("id"), rs.getString("title"),
+                        rs.getString("primary_provider")));
+    }
+
+    /** Providers that publish this match, from the id-mapping table. */
+    public List<String> providersFor(String matchId) {
+        return jdbc.query(
+                "SELECT DISTINCT provider FROM provider_match_map WHERE match_id=? ORDER BY provider",
+                (rs, i) -> rs.getString("provider"), matchId);
     }
 
 }
