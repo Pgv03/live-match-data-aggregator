@@ -1,0 +1,1 @@
+{"provider":"provider-a","deliveryId":"d1","occurredAt":"2026-10-22T14:03:11.000Z","providerMatchId":"a-match-1001","snapshot":{"sequence":1,"revision":1,"status":"live","innings":1,"runs":4,"wickets":0,"overs":"0.4"},"commentary":{"ballId":"b1","sequence":1,"revision":1,"innings":1,"over":0,"ball":4,"text":"four"}}
