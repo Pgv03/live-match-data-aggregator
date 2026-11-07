@@ -87,4 +87,24 @@ class MatchQueryServiceTest {
     void unknownMatchIsRejected() {
         assertThrows(UnknownMatchException.class, () -> query.requireMatch("nope"));
     }
+
+    @Test
+    void sourcesShowsEveryProviderAndWhichOneIsServed() {
+        store.applySnapshot(M, A, snap(1, 10));
+        store.applySnapshot(M, B, snap(100, 99));
+        store.applyCommentary(M, B, ball("b1", 1));
+
+        var sources = query.sources(match);
+        assertEquals(List.of(A, B), sources.stream().map(MatchQueryService.ProviderState::provider).toList());
+        assertEquals(10, sources.get(0).score().runs());
+        assertEquals(99, sources.get(1).score().runs());
+        assertEquals(100, sources.get(1).score().sequence());
+        assertTrue(sources.get(0).commentary().isEmpty());
+        assertEquals(1, sources.get(1).commentary().size());
+
+        // the normal views still follow the precedence rule
+        assertEquals(A, query.score(match).orElseThrow().source());
+        assertEquals(B, query.commentary(match).source());  // A has no balls, so B's list is served
+    }
+
 }

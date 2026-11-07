@@ -29,4 +29,20 @@ public final class Views {
     }
 
     public record CommentaryView(String source, List<CommentaryEntry> items) {}
+
+    /** Unlike ScoreView, exposes sequence and revision, which the ordering rules act on. */
+    public record StoredScoreView(long sequence, int revision, String status, int innings,
+                                  int runs, int wickets, String overs, Instant asOf) {
+        public static StoredScoreView from(Snapshot s) {
+            return new StoredScoreView(s.sequence(), s.revision(), s.status(), s.innings(),
+                    s.runs(), s.wickets(), s.overs(), s.asOf());
+        }
+    }
+
+    public record ProviderSourceView(String provider, StoredScoreView score,
+                                     List<CommentaryEntry> commentary) {}
+
+    public record SourcesView(String matchId, String primaryProvider, String servedScoreFrom,
+                              String servedCommentaryFrom, List<ProviderSourceView> providers) {}
+
 }

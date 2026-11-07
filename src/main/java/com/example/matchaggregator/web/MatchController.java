@@ -51,4 +51,19 @@ public class MatchController {
                         ScoreView.from(s.source(), s.value())))
                 .orElseGet(() -> new MatchView(m.id(), m.title(), null, null));
     }
+
+    @GetMapping("/{id}/sources")
+    public SourcesView sources(@PathVariable("id") String id) {
+        Match m = query.requireMatch(id);
+        List<ProviderSourceView> providers = query.sources(m).stream()
+                .map(p -> new ProviderSourceView(
+                        p.provider(),
+                        p.score() == null ? null : StoredScoreView.from(p.score()),
+                        p.commentary().stream().map(CommentaryEntry::from).toList()))
+                .toList();
+        String scoreFrom = query.score(m).map(MatchQueryService.Served::source).orElse(null);
+        String commentaryFrom = query.commentary(m).source();
+        return new SourcesView(m.id(), m.primaryProvider(), scoreFrom, commentaryFrom, providers);
+    }
+
 }

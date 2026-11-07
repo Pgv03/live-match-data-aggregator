@@ -60,4 +60,17 @@ public class MatchQueryService {
         }
         return new Served<>(null, List.of());
     }
+
+    /** One provider's stored state, for the side-by-side debug view. */
+    public record ProviderState(String provider, Snapshot score, List<CommentaryItem> commentary) {}
+
+    /** Every provider's stored state, in precedence order. */
+    public List<ProviderState> sources(Match m) {
+        return providerOrder(m).stream()
+                .map(p -> new ProviderState(p,
+                        store.getSnapshot(m.id(), p).orElse(null),
+                        store.getCommentary(m.id(), p)))
+                .toList();
+    }
+
 }
