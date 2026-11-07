@@ -16,6 +16,8 @@ import com.example.matchaggregator.model.Match;
 import java.sql.Timestamp;
 import java.util.Optional;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Repository
 public class MatchStore {
     private final JdbcTemplate jdbc;
@@ -119,6 +121,7 @@ public class MatchStore {
      * and sends the rest through applyCommentary, so the SQL rule still guards every write.
      * Returns how many rows actually changed.
      */
+    @Transactional
     public int applyCommentaryBatch(String matchId, String provider, List<CommentaryItem> items) {
         Map<String, Integer> stored = getStoredRevisions(matchId, provider);
         int changed = 0;
@@ -182,6 +185,16 @@ public class MatchStore {
         return jdbc.query(
                 "SELECT DISTINCT provider FROM provider_match_map WHERE match_id=? ORDER BY provider",
                 (rs, i) -> rs.getString("provider"), matchId);
+    }
+
+    public record ProviderMatch(String matchId, String providerMatchId) {}
+
+    /** Every match a provider publishes, from the id-mapping table. */
+    public List<ProviderMatch> providerMatches(String provider) {
+        return jdbc.query(
+                "SELECT match_id, provider_match_id FROM provider_match_map WHERE provider=? ORDER BY match_id",
+                (rs, i) -> new ProviderMatch(rs.getString("match_id"), rs.getString("provider_match_id")),
+                provider);
     }
 
 }
