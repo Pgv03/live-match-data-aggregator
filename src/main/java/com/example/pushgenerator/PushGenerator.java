@@ -15,7 +15,7 @@ public final class PushGenerator {
     private PushGenerator() {}
 
     public static void main(String[] args) {
-        String url = DEFAULT_URL;
+        String url = System.getenv().getOrDefault("WEBHOOK_URL", DEFAULT_URL);
         String name = "all";
         for (String a : args) {
             if (a.startsWith("--url=")) url = a.substring("--url=".length());
@@ -73,7 +73,7 @@ public final class PushGenerator {
 
     private static void usage() {
         System.out.println("Usage: PushGenerator [--url=<webhook url>] [--scenario=<name>|all]");
-        System.out.println("Default url: " + DEFAULT_URL);
+        System.out.println("Default url: $WEBHOOK_URL if set, otherwise " + DEFAULT_URL);
         System.out.print("Scenarios:");
         for (Scenarios.Scenario s : Scenarios.all()) System.out.print(" " + s.name());
         System.out.println();

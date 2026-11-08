@@ -1,0 +1,45 @@
+x-app: &app
+  build: .
+  image: match-aggregator
+
+services:
+  aggregator:
+    <<: *app
+    command:
+      - com.example.matchaggregator.MatchAggregatorApplication
+      - --poller.provider-b-base-url=http://mock-provider:8081
+    ports:
+      - "8080:8080"
+    volumes:
+      - aggregator-data:/app/data
+
+  mock-provider:
+    <<: *app
+    command:
+      - com.example.mockprovider.MockProviderApplication
+    ports:
+      - "8081:8081"
+
+  # On demand: docker compose run --rm generator [--scenario=<name>|all]
+  generator:
+    <<: *app
+    profiles: ["tools"]
+    entrypoint: ["java", "-cp", "/app/classes:/app/lib/*", "com.example.pushgenerator.PushGenerator"]
+    command: ["--scenario=all"]
+    environment:
+      WEBHOOK_URL: http://aggregator:8080/webhooks/provider-a
+
+  # On demand: docker compose run --rm tests
+  tests:
+    build:
+      context: .
+      target: build
+    image: match-aggregator-build
+    profiles: ["tools"]
+    command: ["mvn", "-B", "test"]
+    volumes:
+      - maven-cache:/root/.m2
+
+volumes:
+  aggregator-data:
+  maven-cache:
